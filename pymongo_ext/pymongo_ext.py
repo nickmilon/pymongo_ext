@@ -329,9 +329,7 @@ class MongoRSClient(MongoReplicaSetClient):
     def refresh(self, initial=False):
         ''' override refresh '''
         super(MongoRSClient, self).refresh(initial)
-        self.parent.rs_refresh()
-
-
+        self.parent.rs_refresh() 
 class MdbClient(SubToEvent):
     '''a mongo client self.client is replicaSetClient
        if 'hosts_or_uri' is defined in kwargs else from MongoClient
@@ -423,12 +421,13 @@ class MdbClient(SubToEvent):
     def collStats(self, collectionNameStr):
         return self.db.command("collstats", collectionNameStr)
 
-    def CappedColSetOrGet(self, colName, dbName=None, size=1000000):
+    def CappedColSetOrGet(self, colName, dbName=None, size=1000000,max=None):
+        """http://docs.mongodb.org/manual/core/capped-collections/"""
         if dbName is None:
             dbName = self.db.name
         if dbName:
             if colName not in self.client[dbName].collection_names():
-                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size)
+                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size,max)
                 return cappedCol
             else:
                 cappedCol = self.client[dbName][colName]
@@ -552,12 +551,12 @@ class MdbCl(object):
     def collStats(self, collectionNameStr):
         return self.db.command("collstats", collectionNameStr)
 
-    def CappedColSetOrGet(self, colName, dbName=None, size=100000):
+    def CappedColSetOrGet(self, colName, dbName=None, size=100000, max=None):
         if dbName is None:
             dbName = self.db.name
         if dbName:
             if colName not in self.client[dbName].collection_names():
-                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size)
+                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size,max=max)
                 return cappedCol
             else:
                 cappedCol = self.client[dbName][colName]
@@ -618,7 +617,7 @@ class SubToCapped(object):
         self.docs_skipped = 0
         self.__stop = False
         #self.start()
-        self.glet = Greenlet.spawn_link(self._run)
+        self.glet = Greenlet.spawn(self._run)
         if autoJoin:
             self.join()
         #if autoJoin:self.join()
