@@ -733,8 +733,7 @@ def CappedColSetOrGet(client, dbName, colName, size=1000000, maxdocs=None):
 class  PubSub(object):
     def __init__(self, client, dbName, colName, size=10000000, maxdocs=None):
         #self.PubSubCol = client[dbName][colName]
-        self.v_client, self.v_dbName, self.v_colName, self.v_size, self.v_maxdocs = client, dbName,
-        colName, size, maxdocs
+        self.v_client, self.v_dbName, self.v_colName, self.v_size, self.v_maxdocs = client, dbName, colName, size, maxdocs
         self.AuxToolsObj = AuxTools(client, dbName=dbName, colName=colName + '_PB')
         self._CappedColSetOrGet()
 
