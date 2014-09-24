@@ -427,7 +427,7 @@ class MdbClient(SubToEvent):
             dbName = self.db.name
         if dbName:
             if colName not in self.client[dbName].collection_names():
-                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size,max)
+                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size,max=max)
                 return cappedCol
             else:
                 cappedCol = self.client[dbName][colName]
