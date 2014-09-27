@@ -421,22 +421,12 @@ class MdbClient(SubToEvent):
     def collStats(self, collectionNameStr):
         return self.db.command("collstats", collectionNameStr)
 
-    def CappedColSetOrGet(self, colName, dbName=None, size=1000000,max=None):
+    def CappedColSetOrGet(self, colName, dbName=None, sizeBytes=1000000,maxDocs=None):
         """http://docs.mongodb.org/manual/core/capped-collections/"""
         if dbName is None:
             dbName = self.db.name
         if dbName:
-            if colName not in self.client[dbName].collection_names():
-                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size,max=max)
-                return cappedCol
-            else:
-                cappedCol = self.client[dbName][colName]
-                if not cappedCol.options().get('capped'):
-                    self.client[dbName].command({"convertToCapped": colName, 'size': size})
-                return cappedCol
-                    #if res.get('ok', -1) ==1:
-        else:
-            return None
+            return CappedColSetOrGet(self.client, dbName, colName, sizeBytes, maxDocs) 
 
     def close(self):
         if hasattr(self, 'client'):
@@ -551,22 +541,11 @@ class MdbCl(object):
     def collStats(self, collectionNameStr):
         return self.db.command("collstats", collectionNameStr)
 
-    def CappedColSetOrGet(self, colName, dbName=None, size=100000, max=None):
+    def CappedColSetOrGet(self, colName, dbName=None, sizeBytes=100000, maxDocs=None):
         if dbName is None:
             dbName = self.db.name
         if dbName:
-            if colName not in self.client[dbName].collection_names():
-                cappedCol = self.client[dbName].create_collection(colName, capped=True, size=size,max=max)
-                return cappedCol
-            else:
-                cappedCol = self.client[dbName][colName]
-                if not cappedCol.options().get('capped'):
-                    self.client[dbName].command({"convertToCapped": colName, 'size': size})
-                return cappedCol
-                    #if res.get('ok', -1) ==1:
-        else:
-            return None
-
+            return CappedColSetOrGet(self.client, dbName, colName, sizeBytes, maxDocs)  
 
 class SubToCapped(object):
     '''
@@ -715,21 +694,21 @@ class SubToCapped(object):
     def stop(self):
         self.__stop = True
         self.glet.kill(exception=GreenletExit, block=True, timeout=None)
-        print "stoped " * 4
+        print "stoped " * 4 
 
-
-def CappedColSetOrGet(client, dbName, colName, size=1000000, maxdocs=None):
+def CappedColSetOrGet(client, dbName, colName, sizeBytes=1000000, maxDocs=None):
+    """
+        http://docs.mongodb.org/manual/tutorial/use-capped-collections-for-fast-writes-and-reads/
+        autoIndexId=False we can get replication problems if not a local db
+    """
     if colName not in client[dbName].collection_names():
-        return client[dbName].create_collection(colName, capped=True, size=size, max=maxdocs,
-                                                autoIndexId=False)
-        #autoIndexId=False we can get replication problems  if not in local db
+        return client[dbName].create_collection(colName, capped=True, size=sizeBytes, max=maxDocs, autoIndexId=False) 
     else:
         cappedCol = client[dbName][colName]
         if not cappedCol.options().get('capped'):
-            client[dbName].command({"convertToCapped": colName, 'size': size})
-        return cappedCol
-
-
+            client[dbName].command({"convertToCapped": colName, 'size': sizeBytes})
+        return cappedCol 
+    
 class  PubSub(object):
     def __init__(self, client, dbName, colName, size=10000000, maxdocs=None):
         #self.PubSubCol = client[dbName][colName]
