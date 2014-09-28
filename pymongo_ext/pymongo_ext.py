@@ -696,13 +696,13 @@ class SubToCapped(object):
         self.glet.kill(exception=GreenletExit, block=True, timeout=None)
         print "stoped " * 4 
 
-def CappedColSetOrGet(client, dbName, colName, sizeBytes=1000000, maxDocs=None):
+def CappedColSetOrGet(client, dbName, colName, sizeBytes=1000000, maxDocs=None, autoIndexId = True):
     """
         http://docs.mongodb.org/manual/tutorial/use-capped-collections-for-fast-writes-and-reads/
-        autoIndexId=False we can get replication problems if not a local db
+        autoIndexId must be True for replication so must be True except on a stand alone mongodb or collection belongs to 'local' db 
     """
     if colName not in client[dbName].collection_names():
-        return client[dbName].create_collection(colName, capped=True, size=sizeBytes, max=maxDocs, autoIndexId=False) 
+        return client[dbName].create_collection(colName, capped=True, size=sizeBytes, max=maxDocs, autoIndexId=autoIndexId) 
     else:
         cappedCol = client[dbName][colName]
         if not cappedCol.options().get('capped'):
