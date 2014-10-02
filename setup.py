@@ -39,6 +39,7 @@ setup(
     #install_requires = [],
     install_requires=[
         'pymongo>=2.5',
+        'greenlet',
         'gevent',
     ],
 )

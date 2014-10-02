@@ -33,6 +33,7 @@ from bson.code import Code
 from bson import SON
 from utils import enum, dictDot
 from utils import parseJSfunFromFile, confFileDict, SubToEvent, autoRetry
+from os import path
 unicode('').encode('idna')
 #@note:  fixes bug on gevent 1.0  see https://github.com/surfly/gevent/issues/349
                             #os.environ["GEVENT_RESOLVER"] = "ares" doesn't work
@@ -40,7 +41,13 @@ unicode('').encode('idna')
 from __init__ import _PATHROOT
 PATH_JS = _PATHROOT + "/js/mr_fun.js"
 # print 'root', os.listdir(_ROOT)
-MONGO_CONF_DEFAULTPATH = "/etc/mongodb.conf"
+def getMongoConfPath():
+    l=["db.conf",'mongod.conf','mongodB.conf']
+    l=map(lambda x: x if path.isfile("/etc/"+x) else False, l)
+    for i in l:
+        if i:return "/etc/"+i
+ 
+MONGO_CONF_DEFAULTPATH = getMongoConfPath()
 mv = enum(_gt='$gt', _lt='$lt', _all='$all', _exists='$exists', _mod='$mod', _ne='$ne', _in='$in',
          nin='$nin', _nor='$nor', _or='$or', _and='$and', _size='$size', _type='$type', _set="$set",
          _atomic='$atomic', _id='_id')
